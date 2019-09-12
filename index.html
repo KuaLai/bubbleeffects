@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=0.5, user-scalable=yes" />
+<title>泡泡上升特效</title>
+<link rel="stylesheet" href="css/main.min.css">
+</head>
+<body>
+	<div class="wrapper">
+		<!-- 泡泡區塊 start -->
+		<div id="bubbleZone" class="bubble">
+            <div id="bubbleBlue" class="item"><img src="images/img-bubble.png" alt=""></div>
+            <div id="bubbleRed" class="item"><img src="images/img-bubble1.png" alt=""></div>
+            <div id="bubbleGreen" class="item"><img src="images/img-bubble2.png" alt=""></div>
+        </div>
+		<!-- 泡泡區塊 end -->
+	</div>
+    <script>
+        // 設定泡泡物件 //
+        let map = {
+            obj : document.getElementById("bubbleZone"),
+            bounderies: {
+                w: document.body.clientWidth,
+                h: document.body.clientHeight
+            },
+            bubbles: {
+                template: document.createElement("DIV"),
+                total: 8,
+                type : document.querySelectorAll(".bubble .item"),
+            }
+        };
+       
+        // 產生泡泡 //
+        function bubbles(className,bubbleImg,resetTop){
+            for (let index = 1; index <= map.bubbles.total; index++) {    
+                for (let i = 0; i < (map.bubbles.type).length; i++) { 
+                        let bubble = document.createElement("DIV"),
+                            bubble_top = resetTop + Math.round(Math.random() * map.bounderies.h) || Math.round(Math.random() * map.bounderies.h),
+                            bubble_left = Math.round(Math.random() * map.bounderies.w),
+                            bubble_size = Math.round(Math.random() * 40 + 1);
+
+                        function bubbleStyle(e,img){
+                            e.className = className;
+                            e.innerHTML =  map.bubbles.type[img].innerHTML;
+                            e.style.top = bubble_top + 'px';
+                            e.style.left = bubble_left + 'px';
+                            e.style.width = bubble_size + 'px';
+                        }
+
+                        bubbleStyle(bubble,bubbleImg);
+                        map.obj.append(bubble);
+                }
+            };
+        };
+        
+        // 設定泡泡動態 //
+        function bubbleUp(e,speed){
+            const bubble = e;
+            const animate_speed = speed;
+            
+            for (let index = 0; index < bubble.length; index++) {
+                let position_top = bubble[index].offsetTop;
+                let position_left = bubble[index].offsetLeft;
+                
+                // 隨機左右位置 //
+                function randomPosition(){
+                    let random_left = position_left -  Math.round(Math.random() * 10 + 1);
+                    let reset_left = random_left;
+                    random_left += 1 ;
+                    bubble[index].style.left = random_left + 'px';
+
+                    if (bubble[index].style.left == position_left ){
+                        random_left -= 1;
+                        if (bubble[index].style.left == reset_left ){
+                            random_left += 1 ;
+                        }
+                    }
+
+                    setTimeout(randomPosition, 100); 
+                };
+                // randomPosition();
+                
+                // 飄動 //
+                function animate() {
+                    position_top  -= 1;
+                    bubble[index].style.top = position_top  + 'px';
+                    
+                    if (position_top <= 0) {
+                        position_top = map.bounderies.h + (Math.round(Math.random() * map.bounderies.h));
+                        position_left = Math.round(Math.random() * map.bounderies.w);
+                    }
+                    
+                    setTimeout(animate, animate_speed); 
+                }
+                animate();
+            }
+        };
+
+        // 執行 //
+
+        function start() {
+            
+             // 隱藏預設物件 //
+            function elementDisplayShow(element, display) {
+                if (element.length > 1) {
+                for (let index = 0; index < element.length; index++) {
+                    element[index].style.display = display || "block";
+                }
+                } else {
+                element.style.display = "block";
+                }
+            };
+            elementDisplayShow(map.bubbles.type,"none");
+            let setImages = 0;
+            let bubble_total;
+
+            for (let i = 0; i < (map.bubbles.type).length; i++) {   
+                
+                if ( setImages < (map.bubbles.type).length) {
+                    let elementName = "item a" + i ;
+
+                    setTimeout(() => {
+                        bubbles(elementName,i,map.bounderies.h);
+                        setImages += 1;
+                        bubble_total = document.querySelectorAll(".bubble .a" + i);
+                        bubbleUp(bubble_total, 2 * i + 3);
+                    }, 1000 * i);
+             
+                }    
+            }
+        };
+        
+        start();
+        
+
+        
+	</script>
+</body>
+</html>
