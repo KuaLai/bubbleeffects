@@ -7,134 +7,216 @@
 <link rel="stylesheet" href="css/main.min.css">
 </head>
 <body>
-	<div class="wrapper">
-		<!-- 泡泡區塊 start -->
-		<div id="bubbleZone" class="bubble">
+    <div class="wrapper">
+        <!-- 泡泡區塊 start -->
+        <div id="bubble" class="bubble">
             <div id="bubbleBlue" class="item"><img src="images/img-bubble.png" alt=""></div>
             <div id="bubbleRed" class="item"><img src="images/img-bubble1.png" alt=""></div>
             <div id="bubbleGreen" class="item"><img src="images/img-bubble2.png" alt=""></div>
         </div>
-		<!-- 泡泡區塊 end -->
-	</div>
+        <!-- 泡泡區塊 end -->
+    </div>
     <script>
         // 設定泡泡物件 //
         let map = {
-            obj : document.getElementById("bubbleZone"),
+            targetElement: document.getElementById("bubble"),
             bounderies: {
                 w: document.body.clientWidth,
-                h: document.body.clientHeight
+                h: document.body.scrollHeight
             },
             bubbles: {
                 template: document.createElement("DIV"),
-                total: 8,
-                type : document.querySelectorAll(".bubble .item"),
-            }
+                total: 2,
+                type: document.querySelectorAll("#bubble .item"),
+            },
+            isRotate: false, //物件自體旋轉
+            isTraverse: true, //取得部份物件右飄
+            isTargetUp: true //物件路徑往上
         };
-       
+
         // 產生泡泡 //
-        function bubbles(className,bubbleImg,resetTop){
-            for (let index = 1; index <= map.bubbles.total; index++) {    
-                for (let i = 0; i < (map.bubbles.type).length; i++) { 
-                        let bubble = document.createElement("DIV"),
-                            bubble_top = resetTop + Math.round(Math.random() * map.bounderies.h) || Math.round(Math.random() * map.bounderies.h),
-                            bubble_left = Math.round(Math.random() * map.bounderies.w),
-                            bubble_size = Math.round(Math.random() * 40 + 1);
+        function bubbles(className, bubbleImg, resetTop) {
+            for (let index = 1; index <= map.bubbles.total; index++) {
+                for (let i = 0; i < (map.bubbles.type).length; i++) {
+                    let bubble = document.createElement("DIV"),
+                        bubble_top = resetTop + Math.round(Math.random() * map.bounderies.h) || Math.round(Math.random() * map.bounderies.h),
+                        bubble_left = Math.round(Math.random() * map.bounderies.w),
+                        bubble_size = randNum(10, 30);
 
-                        function bubbleStyle(e,img){
-                            e.className = className;
-                            e.innerHTML =  map.bubbles.type[img].innerHTML;
-                            e.style.top = bubble_top + 'px';
-                            e.style.left = bubble_left + 'px';
-                            e.style.width = bubble_size + 'px';
+                    function bubbleStyle(e, img) {
+
+                        e.className = className;
+                        e.innerHTML = map.bubbles.type[img].innerHTML;
+                        e.style.top = bubble_top + 'px';
+                        e.style.left = bubble_left + 'px';
+                        e.style.width = bubble_size + 'px';
+
+                        if (map.isRotate === true) {
+                            let r = 0;
+                            let spd = Math.random() * (3 - 0.05) + 0.05;
+
+                            (function spin() {
+                                if (r === 350) {
+                                    r = 0
+                                } else {
+                                    r += spd
+                                }
+                                e.style.transform = 'rotate(' + r + 'deg)';
+                                requestAnimationFrame(spin);
+                            })();
+                        } else {
+                            // 不旋轉可能有其他的效果(?)
                         }
+                    }
 
-                        bubbleStyle(bubble,bubbleImg);
-                        map.obj.append(bubble);
+                    bubbleStyle(bubble, bubbleImg);
+                    map.targetElement.append(bubble);
                 }
             };
         };
-        
+
+        // fade in
+        function fadeIn(el, display) {
+            el.style.opacity = 0;
+            el.style.display = display || "block";
+
+            (function fade() {
+                let val = parseFloat(el.style.opacity);
+                if (!((val += .1) > 1)) {
+                    el.style.opacity = val;
+                    requestAnimationFrame(fade);
+                }
+            })();
+        }
+
+        // fade out
+        function fadeOut(el) {
+            el.style.opacity = 1;
+
+            (function fade() {
+                if ((el.style.opacity -= .1) < 0) {
+                    el.style.display = "none";
+                } else {
+                    requestAnimationFrame(fade);
+                }
+            })();
+        }
+
+        // random 區間
+        function randNum(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
         // 設定泡泡動態 //
-        function bubbleUp(e,speed){
+        function bubbleUp(e, speed) {
             const bubble = e;
             const animate_speed = speed;
-            
+
             for (let index = 0; index < bubble.length; index++) {
                 let position_top = bubble[index].offsetTop;
                 let position_left = bubble[index].offsetLeft;
-                
-                // 隨機左右位置 //
-                function randomPosition(){
-                    let random_left = position_left -  Math.round(Math.random() * 10 + 1);
-                    let reset_left = random_left;
-                    random_left += 1 ;
-                    bubble[index].style.left = random_left + 'px';
 
-                    if (bubble[index].style.left == position_left ){
-                        random_left -= 1;
-                        if (bubble[index].style.left == reset_left ){
-                            random_left += 1 ;
-                        }
+                // 隨機左右位置 
+                function randomPosition() {
+
+                    if (index % 2 == 0) {
+                        position_left += 1;
+                        bubble[index].style.left = position_left + 'px';
                     }
 
-                    setTimeout(randomPosition, 100); 
+                    if (position_left == document.body.scrollWidth - 50) {
+                        fadeOut(bubble[index]);
+                    }
+                    if (position_left >= document.body.scrollWidth) {
+                        position_top = 0 - (Math.round(Math.random() * map.bounderies.h));
+                        position_left = Math.round(Math.random() * map.bounderies.w);
+                        fadeIn(bubble[index]);
+                    }
+                    setTimeout(randomPosition, 10);
                 };
-                // randomPosition();
-                
+
+
                 // 飄動 //
                 function animate() {
-                    position_top  -= 1;
-                    bubble[index].style.top = position_top  + 'px';
-                    
-                    if (position_top <= 0) {
-                        position_top = map.bounderies.h + (Math.round(Math.random() * map.bounderies.h));
-                        position_left = Math.round(Math.random() * map.bounderies.w);
+                    let targetStatus, positionRange, resetTop;
+
+                    if (map.isTargetUp === true) {
+                        position_top -= 1;
+                        targetStatus = 50;
+                        positionRange = position_top <= 0;
+                        resetTop = map.bounderies.h + (Math.round(Math.random() * map.bounderies.h));
+
+                    } else {
+                        position_top += 1;
+
+                        targetStatus = document.body.scrollHeight - 200;
+                        positionRange = position_top >= document.body.scrollHeight;
+                        resetTop = 0 - (Math.round(Math.random() * map.bounderies.h));
                     }
-                    
-                    setTimeout(animate, animate_speed); 
+
+                    bubble[index].style.top = position_top + 'px';
+
+                    if (position_top == targetStatus) {
+                        fadeOut(bubble[index]);
+                    }
+                    if (positionRange) {
+                        position_top = resetTop;
+                        position_left = Math.round(Math.random() * map.bounderies.w);
+                        fadeIn(bubble[index]);
+                    }
+
+                    setTimeout(animate, animate_speed);
                 }
-                animate();
+
+                if (map.isTraverse === true) {
+                    animate();
+                    randomPosition();
+                } else {
+                    animate();
+                }
+
             }
         };
 
         // 執行 //
 
         function start() {
-            
-             // 隱藏預設物件 //
+
+            // 隱藏預設物件 //
             function elementDisplayShow(element, display) {
                 if (element.length > 1) {
-                for (let index = 0; index < element.length; index++) {
-                    element[index].style.display = display || "block";
-                }
+                    for (let index = 0; index < element.length; index++) {
+                        element[index].style.display = display || "block";
+                    }
                 } else {
-                element.style.display = "block";
+                    element.style.display = "block";
                 }
             };
-            elementDisplayShow(map.bubbles.type,"none");
+
+            elementDisplayShow(map.bubbles.type, "none");
+
             let setImages = 0;
             let bubble_total;
 
-            for (let i = 0; i < (map.bubbles.type).length; i++) {   
-                
-                if ( setImages < (map.bubbles.type).length) {
-                    let elementName = "item a" + i ;
+            for (let i = 0; i < (map.bubbles.type).length; i++) {
+
+                if (setImages < (map.bubbles.type).length) {
+                    let elementName = "item a" + i;
 
                     setTimeout(() => {
-                        bubbles(elementName,i,map.bounderies.h);
+                        bubbles(elementName, i, map.bounderies.h);
                         setImages += 1;
-                        bubble_total = document.querySelectorAll(".bubble .a" + i);
-                        bubbleUp(bubble_total, 2 * i + 3);
+                        bubble_total = document.querySelectorAll("#bubble .a" + i);
+                        bubbleUp(bubble_total, 0.2 * i + 3);
                     }, 1000 * i);
-             
-                }    
+                }
             }
         };
-        
-        start();
-        
 
-        
-	</script>
+        start();
+
+    </script>
 </body>
 </html>
