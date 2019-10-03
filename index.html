@@ -18,8 +18,14 @@
     </div>
     <script>
         // 設定泡泡物件 //
-        let map = {
-            targetElement: document.getElementById("bubble"),
+        const element = {
+            id : "#bubble",
+            item : "#bubble .item",
+            addClass: "#bubble .a"
+        } 
+
+        const map = {
+            targetElement: document.querySelector(element.id),
             bounderies: {
                 w: document.body.clientWidth,
                 h: document.body.scrollHeight
@@ -27,7 +33,8 @@
             bubbles: {
                 template: document.createElement("DIV"),
                 total: 2,
-                type: document.querySelectorAll("#bubble .item"),
+                type: document.querySelectorAll(element.item),
+                speed: 10
             },
             isRotate: false, //物件自體旋轉
             isTraverse: true, //取得部份物件右飄
@@ -134,7 +141,7 @@
                         position_left = Math.round(Math.random() * map.bounderies.w);
                         fadeIn(bubble[index]);
                     }
-                    setTimeout(randomPosition, 10);
+                    setTimeout(randomPosition, map.bubbles.speed);
                 };
 
 
@@ -208,8 +215,8 @@
                     setTimeout(() => {
                         bubbles(elementName, i, map.bounderies.h);
                         setImages += 1;
-                        bubble_total = document.querySelectorAll("#bubble .a" + i);
-                        bubbleUp(bubble_total, 0.2 * i + 3);
+                        bubble_total = document.querySelectorAll(element.addClass + i);
+                        bubbleUp(bubble_total, map.bubbles.speed * i * 0.4);
                     }, 1000 * i);
                 }
             }
